@@ -26,7 +26,7 @@ pathout = 'C:/ENS5132/ENS5132/Projeto03/Output3/'
 lista = os.listdir(path)
 listanetCDF = os.listdir(pathnetCDF)
 
-read = xr.open_dataset(pathnetCDF + 'GLDAS_CLSM10_M.A200002.021.nc4')
+read = xr.open_dataset(pathnetCDF + 'GLDAS_CLSM10_M.A202502.021.nc4')
 print(read.variables.keys())
 dataset = read.to_dataframe()
 dados = read.rio.set_spatial_dims(x_dim = 'lon', y_dim = 'lat', inplace=True)
@@ -51,7 +51,7 @@ y = read.variables['TVeg_tavg'][0,:,0]
 y
 
 data_variable.plot()
-plt.title('Irradiação - Fev/2000')
+plt.title('Irradiação - Fev/2025')
 plt.show()
 
 
@@ -71,9 +71,9 @@ parallels = np.arange(-90,90,20.)
 mapa.drawparallels(parallels,labels = [1,0,0,0], fontsize = 10)
 meridians = np.arange(-180.,180.,40.)
 mapa.drawmeridians(meridians, labels=[0,0,0,1], fontsize = 10)
-precipi  = mapa.contourf(x,y,irr[0,:,:])
-cb = mapa.colorbar(precipi, 'bottom', size = '8%', pad = '10%')
-plt.title('Irradiação - Fev/2000', fontsize=12)
+var  = mapa.contourf(x,y,irr[0,:,:])
+cb = mapa.colorbar(var, 'bottom', size = '8%', pad = '10%')
+plt.title('Irradiação - Fev/2025', fontsize=12)
 cb.set_label('Irradiação({})'.format(unitp))
 plt.show()
 
@@ -95,9 +95,9 @@ parallels = np.arange(-90,90,10.)
 mapa.drawparallels(parallels,labels = [1,0,0,0], fontsize = 10)
 meridians = np.arange(180.,360.,10.)
 mapa.drawmeridians(meridians, labels=[0,0,0,1], fontsize = 10)
-precipi  = mapa.contourf(x,y,irr[0,:,:])
-cb = mapa.colorbar(precipi, 'bottom', size = '5%', pad = '10%')
-plt.title('Irradiação - Fev/2000')
+var  = mapa.contourf(x,y,irr[0,:,:])
+cb = mapa.colorbar(var, 'bottom', size = '5%', pad = '10%')
+plt.title('Irradiação - Fev/2025')
 cb.set_label('Irradiação({})'.format(unitp))
 plt.show()
 
@@ -127,33 +127,33 @@ Brasil_mask_poly
 print('{}'.format(Brasil_mask_poly.names[0]))
 mask = Brasil_mask_poly.mask(read.isel(time=0))
 mask
-mask.to_netcdf(pathout + 'mask_by_Brasil2.nc')
-readmask = xr.open_dataset(pathout + 'mask_by_Brasil2.nc')
+mask.to_netcdf(pathout + 'mask_by_Brasil3.nc')
+readmask = xr.open_dataset(pathout + 'mask_by_Brasil3.nc')
 dataframe = readmask.to_dataframe()
 masked_shape = read.where(mask!='nan')
 masked_shape
 
 #Extractin data series with Brasil map
-read = xr.open_dataset('C:/ENS5132/ENS5132/Projeto03/Input3/GLDAS/GLDAS_CLSM10_M.A200002.021.nc4')
+read = xr.open_dataset('C:/ENS5132/ENS5132/Projeto03/Input3/GLDAS/GLDAS_CLSM10_M.A202502.021.nc4')
 read.rio.write_crs('epsg:4674', inplace = True)
-read['TVeg_tavg'].rio.to_raster('C:/ENS5132/ENS5132/Projeto03/Output3/test.tif')
+read['TVeg_tavg'].rio.to_raster('C:/ENS5132/ENS5132/Projeto03/Output3/test32025.tif')
 Brasil = gpd.read_file(path + 'shapes/BR_Regioes_2024/BR_Regioes_2024.shp')
-with rasterio.open('C:/ENS5132/ENS5132/Projeto03/Output3/test.tif') as src:
+with rasterio.open('C:/ENS5132/ENS5132/Projeto03/Output3/test32025.tif') as src:
     Brasil=Brasil.to_crs(src.crs)
     out_image, out_transform = rasterio.mask.mask(src, Brasil.geometry, crop = True)
     out_meta = src.meta.copy()
 out_meta.update({'driver':'Gtiff',
                  'height':out_image.shape[1], 'width':out_image.shape[2], 'transform': out_transform})
-with rasterio.open('C:/ENS5132/ENS5132/Projeto03/Output3/clipped.tif', 'w', **out_meta) as dst:
+with rasterio.open('C:/ENS5132/ENS5132/Projeto03/Output3/clipped32025.tif', 'w', **out_meta) as dst:
     dst.write(out_image)
 
 
 #Apenas um test para ver o raster:
 regioes = gpd.read_file(path + 'shapes/BR_Regioes_2024/BR_Regioes_2024.shp', masked=True).squeeze()
-clipped = rio.open_rasterio(pathout + 'clipped.tif', masked=True).squeeze()
+clipped = rio.open_rasterio(pathout + 'clipped32025.tif', masked=True).squeeze()
 f,ax=plt.subplots()
 clipped.plot(ax=ax, cbar_kwargs = {'orientation':'vertical', 'shrink': 0.8, 'label':'Irradiância (W/m2)'})
-ax.set_title('Irradiância - Fev/2000')
+ax.set_title('Irradiância - Fev/2025')
 ax.set_xlabel('Longitude', fontsize = 10)
 ax.set_ylabel('Latitude', fontsize = 10)
 clipped.plot.imshow(Brasil)
@@ -161,13 +161,13 @@ clipped.plot.imshow(Brasil)
 
 #Mapa
 f,ax=plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-clipped = rio.open_rasterio(pathout + 'clipped.tif', masked=True).squeeze()
+clipped = rio.open_rasterio(pathout + 'clipped32025.tif', masked=True).squeeze()
 regioes = gpd.read_file(path + 'shapes/BR_Regioes_2024/BR_Regioes_2024.shp', masked=True).squeeze()
 plt.grid(True, color = 'gray', linestyle = '--', linewidth=0.6)
 clipped.plot(ax=ax, cbar_kwargs = {'orientation':'vertical', 'shrink': 0.8, 'label':'Irradiância (W/m.m)'})
 regioes.plot(ax=ax, facecolor='none', edgecolor='black')
 plt.grid(True, color = 'gray', linestyle = '--', linewidth=0.6)
-ax.set_title('Irradiância - Fev/2000')
+ax.set_title('Irradiância - Fev/2025')
 ax.set_xlabel('Longitude', fontsize = 10)
 ax.set_ylabel('Latitude', fontsize = 10)
 
